@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 5000;
 require("dotenv").config();
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const objectId = require("mongodb").ObjectId;
 const cors = require("cors");
 
@@ -21,10 +21,10 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
-    const database = client.db("FHInfoManagement");
+    const database = client.db("Bulk");
 
     // Collection
-    const HRServerPCInfoCollection = database.collection("HRServerPCInfo");
+    const HRServerPCInfoCollection = database.collection("Software_IPList");
 
     ///// HR Server PC IP Info //////
 
@@ -35,6 +35,26 @@ async function run() {
       console.log("hitting in ipList");
       res.send(ipList);
     });
+
+    // Post Single IP List
+    app.post("/ipList/add", async (req, res) => {
+      const singleIP = req.body;
+      console.log(singleIP);
+      const result = await HRServerPCInfoCollection.insertOne(singleIP);
+      res.json(result);
+    });
+
+    // Delete Single IP From List
+
+    app.delete("/ipList/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: ObjectId(id) };
+      const result = await HRServerPCInfoCollection.deleteOne(query);
+      res.json(result);
+    });
+
+    ////
   } finally {
     //await client.close();
   }
